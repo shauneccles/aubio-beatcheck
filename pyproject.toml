@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aubio-beatcheck"
+version = "0.1.0"
+description = "A comprehensive validation application for aubio audio analysis functions"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aubio-ledfx>=0.4.11",
+    "thebeat[music-notation]>=0.3.0",
+    "textual>=0.47.0",
+    "numpy>=1.20.0",
+    "matplotlib>=3.0.0",
+    "voluptuous>=0.13.0",
+    "loguru>=0.7.0",
+]
+
+[project.scripts]
+aubio-beatcheck = "aubio_beatcheck.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aubio_beatcheck*"]

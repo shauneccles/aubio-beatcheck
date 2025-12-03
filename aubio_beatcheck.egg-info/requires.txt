@@ -1,0 +1,11 @@
+aubio-ledfx>=0.4.11
+thebeat[music-notation]>=0.3.0
+textual>=0.47.0
+numpy>=1.20.0
+matplotlib>=3.0.0
+voluptuous>=0.13.0
+loguru>=0.7.0
+
+[dev]
+pytest>=7.0.0
+pytest-asyncio>=0.21.0

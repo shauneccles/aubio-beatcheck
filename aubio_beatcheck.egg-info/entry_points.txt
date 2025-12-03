@@ -1,0 +1,2 @@
+[console_scripts]
+aubio-beatcheck = aubio_beatcheck.cli:main

@@ -1,0 +1,285 @@
+Metadata-Version: 2.4
+Name: aubio-beatcheck
+Version: 0.1.0
+Summary: A comprehensive validation application for aubio audio analysis functions
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: aubio-ledfx>=0.4.11
+Requires-Dist: thebeat[music-notation]>=0.3.0
+Requires-Dist: textual>=0.47.0
+Requires-Dist: numpy>=1.20.0
+Requires-Dist: matplotlib>=3.0.0
+Requires-Dist: voluptuous>=0.13.0
+Requires-Dist: loguru>=0.7.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+
+# Aubio BeatCheck
+
+A comprehensive validation application for testing and analyzing aubio's audio analysis functions.
+
+## Overview
+
+Aubio BeatCheck provides a user-friendly terminal interface (TUI) for validating aubio's:
+- **Tempo** - Beat tracking and BPM estimation
+- **Onset** - Transient/attack detection
+- **Pitch** - Fundamental frequency detection
+- **Pvoc** - Phase vocoder analysis
+
+The application uses the [thebeat](https://github.com/Nian-Jingqing/thebeat) library to generate audio signals with known ground truth, allowing for precise accuracy measurements.
+
+## Features
+
+- 🎯 **Standard Test Suites** - Comprehensive pre-built test signals covering various scenarios
+- 📊 **Real-time Analysis** - Live progress tracking with performance metrics
+- 📈 **Visualization** - Detailed results with matplotlib charts
+- 💾 **Export Results** - Save reports in JSON, markdown, and image formats
+- 🎵 **Custom Audio** - Load and analyze your own audio files
+- ⚡ **Performance Metrics** - Track frame processing times and efficiency
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/aubio-beatcheck.git
+cd aubio-beatcheck
+
+# Install with uv (recommended)
+uv sync
+uv pip install -e .
+
+# Or with pip
+pip install -e .
+```
+
+**Note:** The `-e` flag installs in editable mode, which allows you to modify the code without reinstalling.
+
+## Quick Start
+
+### Interactive TUI Mode
+
+Launch the terminal user interface:
+
+```bash
+# After installation
+aubio-beatcheck
+
+# Or run directly without installing the script
+python main.py
+
+# Or using uv
+uv run python main.py
+```
+
+Navigate through the interface:
+1. **Select a test suite** - Choose from standard suites or load custom audio
+2. **Configure parameters** - Set signal duration and analysis options
+3. **Run analysis** - Watch real-time progress
+4. **View results** - Explore detailed metrics and visualizations
+5. **Export** - Save reports for documentation
+
+### CLI Mode
+
+Run a specific test suite from the command line:
+
+```bash
+# Run tempo suite with 10-second signals
+aubio-beatcheck --suite tempo --duration 10
+
+# Run all suites
+aubio-beatcheck --suite all --duration 15
+
+# Analyze custom audio
+aubio-beatcheck --audio my_track.wav
+```
+
+## Standard Test Suites
+
+### Tempo/Beat Tracking
+Tests BPM detection and beat tracking:
+- BPM range: 60, 90, 120, 140, 160, 180 BPM
+- Timing jitter: ±5ms, ±10ms, ±15ms variations
+- Click durations: 20ms, 50ms, 100ms
+
+### Onset Detection
+Tests transient detection:
+- Attack types: impulse, sharp, medium, slow
+- Intervals: 250ms, 500ms, 1000ms
+- Waveforms: sine, square, sawtooth, triangle
+
+### Pitch Detection
+Tests pitch tracking:
+- Chromatic scales: low, middle, high octaves
+- Musical intervals: C major scale
+- Different waveforms and timbres
+
+### Rhythmic Patterns
+Tests complex rhythms:
+- Syncopation patterns
+- Polyrhythms
+- Variable pattern densities
+
+### Complex Signals
+Tests combined analysis:
+- Beats + melody + noise
+- Signal-to-noise ratios: 10dB, 20dB, 30dB
+- Various tempo ranges
+
+## Project Structure
+
+```
+aubio-beatcheck/
+├── aubio_beatcheck/          # Main application package
+│   ├── core/                 # Core analysis functionality
+│   │   ├── analyzers.py      # Aubio wrapper classes
+│   │   └── signals.py        # Signal generation interface
+│   ├── ui/                   # Textual TUI components
+│   │   ├── app.py            # Main application
+│   │   ├── screens/          # UI screens
+│   │   │   ├── suite_selector.py
+│   │   │   ├── analysis.py
+│   │   │   └── results.py
+│   │   └── widgets/          # Custom widgets
+│   └── suites/               # Test suite definitions
+│       └── standard.py       # Standard test suites
+├── src/                      # Legacy modules (to be migrated)
+│   ├── thebeat_generator.py # TheBeat signal generation
+│   ├── ground_truth_schema.py
+│   ├── metrics.py
+│   └── visualization.py
+├── main.py                   # Entry point
+└── pyproject.toml            # Project configuration
+```
+
+## Architecture
+
+### Signal Generation (thebeat)
+
+The application uses thebeat for generating test signals with authoritative ground truth:
+
+```python
+from aubio_beatcheck.core.signals import SignalGenerator
+
+# Generate a 120 BPM click track
+audio, signal_def = SignalGenerator.click_track(bpm=120, duration=10.0)
+
+# Access ground truth
+beat_times = [b.time for b in signal_def.ground_truth.beats]
+```
+
+### Aubio Analysis
+
+Clean wrapper classes encapsulate aubio functionality:
+
+```python
+from aubio_beatcheck.core.analyzers import TempoAnalyzer, AnalyzerConfig
+
+# Configure analyzer
+config = AnalyzerConfig(fft_size=2048, hop_size=512, sample_rate=44100)
+analyzer = TempoAnalyzer(config)
+
+# Analyze audio
+beats, bpm = analyzer.analyze(audio)
+print(f"Detected {bpm:.1f} BPM with {len(beats)} beats")
+```
+
+### Test Suites
+
+Pre-built comprehensive test suites:
+
+```python
+from aubio_beatcheck.suites.standard import StandardSuites
+
+# Get tempo test suite
+signals = StandardSuites.tempo_suite(duration=10.0)
+
+# Get all suites
+all_suites = StandardSuites.all_suites(duration=15.0)
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Install dev dependencies
+uv sync --group dev
+
+# Run tests (when implemented)
+pytest
+```
+
+### Adding Custom Test Suites
+
+Create a new suite in `aubio_beatcheck/suites/`:
+
+```python
+from aubio_beatcheck.suites.standard import TestSignal
+from aubio_beatcheck.core.signals import SignalGenerator
+
+def my_custom_suite() -> list[TestSignal]:
+    signals = []
+    
+    # Add your custom signals
+    audio, signal_def = SignalGenerator.click_track(bpm=150, duration=20.0)
+    signals.append(TestSignal(
+        name="my_test",
+        description="Custom test signal",
+        audio=audio,
+        signal_def=signal_def,
+        category="tempo"
+    ))
+    
+    return signals
+```
+
+## Migration Notes
+
+This project has been refactored from a pytest test suite into a standalone application:
+
+**Removed:**
+- Old manual signal generators (`signal_generator.py`, `realistic_signal_generator.py`)
+- Pytest-specific test files (`test_*.py`, `conftest.py`)
+- Test-specific infrastructure
+
+**Kept:**
+- thebeat-based signal generation (authoritative ground truth)
+- Ground truth schema
+- Metrics calculation
+- Visualization functions
+
+**New:**
+- Textual TUI interface
+- Aubio analyzer wrappers
+- Standard test suite framework
+- CLI entry point
+
+## References
+
+- [aubio](https://aubio.org/) - Audio analysis library
+- [thebeat](https://github.com/Nian-Jingqing/thebeat) - Research-validated signal generation
+- [Textual](https://github.com/Textualize/textual) - Terminal UI framework
+
+## License
+
+GPL-3.0 (inherited from original LedFx testing suite)
+
+## Contributing
+
+Contributions are welcome! Please:
+1. Maintain thebeat-based signal generation (no manual synthesis)
+2. Keep analyzers as clean wrappers around aubio
+3. Add tests for new functionality
+4. Update documentation
+
+## Roadmap
+
+- [ ] Complete CLI mode analysis implementation
+- [ ] Export functionality (JSON, markdown, PNG)
+- [ ] Custom audio file loading with format detection
+- [ ] Ground truth annotation UI for custom audio
+- [ ] Configuration presets for analyzers
+- [ ] Comparative analysis across aubio versions
+- [ ] Integration with CI/CD pipelines
+- [ ] Web-based results dashboard
