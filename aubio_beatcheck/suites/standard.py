@@ -234,7 +234,7 @@ class StandardSuites:
                 signals.append(
                     TestSignal(
                         name=f"chord_{i}_note_{note}",
-                        description=f"Chord {i+1}, MIDI note {note}",
+                        description=f"Chord {i + 1}, MIDI note {note}",
                         audio=audio,
                         signal_def=signal_def,
                         category="pitch",
@@ -283,7 +283,8 @@ class StandardSuites:
 
         for name, pattern, desc in patterns:
             audio, signal_def = generate_rhythmic_pattern(
-                pattern=pattern, grid_ioi_ms=125.0  # 16th notes at 120 BPM
+                pattern=pattern,
+                grid_ioi_ms=125.0,  # 16th notes at 120 BPM
             )
             signals.append(
                 TestSignal(

@@ -14,6 +14,7 @@ from .thebeat_gen import (
     generate_pitch_sequence,
     generate_rhythmic_pattern,
 )
+
 __all__ = [
     "SignalGenerator",
     "generate_click_track",

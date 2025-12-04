@@ -120,16 +120,16 @@ class TempoAnalyzer:
         """
         # Ensure audio is float32 and contiguous
         audio = np.ascontiguousarray(audio, dtype=np.float32)
-        
+
         detected_beats = []
         hop_size = self.config.hop_size
 
         for i in range(0, len(audio), hop_size):
             chunk = audio[i : i + hop_size]
-            
+
             # Ensure chunk is exactly hop_size samples
             if len(chunk) < hop_size:
-                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode='constant')
+                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode="constant")
             elif len(chunk) > hop_size:
                 chunk = chunk[:hop_size]
 
@@ -206,16 +206,16 @@ class OnsetAnalyzer:
         """
         # Ensure audio is float32 and contiguous
         audio = np.ascontiguousarray(audio, dtype=np.float32)
-        
+
         detected_onsets = []
         hop_size = self.config.hop_size
 
         for i in range(0, len(audio), hop_size):
             chunk = audio[i : i + hop_size]
-            
+
             # Ensure chunk is exactly hop_size samples
             if len(chunk) < hop_size:
-                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode='constant')
+                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode="constant")
             elif len(chunk) > hop_size:
                 chunk = chunk[:hop_size]
 
@@ -296,16 +296,16 @@ class PitchAnalyzer:
         """
         # Ensure audio is float32 and contiguous
         audio = np.ascontiguousarray(audio, dtype=np.float32)
-        
+
         detected_pitches = []
         hop_size = self.config.hop_size
 
         for i in range(0, len(audio), hop_size):
             chunk = audio[i : i + hop_size]
-            
+
             # Ensure chunk is exactly hop_size samples
             if len(chunk) < hop_size:
-                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode='constant')
+                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode="constant")
             elif len(chunk) > hop_size:
                 chunk = chunk[:hop_size]
 
@@ -373,16 +373,16 @@ class PvocAnalyzer:
         """
         # Ensure audio is float32 and contiguous
         audio = np.ascontiguousarray(audio, dtype=np.float32)
-        
+
         hop_size = self.config.hop_size
         spectra = []
 
         for i in range(0, len(audio), hop_size):
             chunk = audio[i : i + hop_size]
-            
+
             # Ensure chunk is exactly hop_size samples
             if len(chunk) < hop_size:
-                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode='constant')
+                chunk = np.pad(chunk, (0, hop_size - len(chunk)), mode="constant")
             elif len(chunk) > hop_size:
                 chunk = chunk[:hop_size]
 
