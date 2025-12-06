@@ -1,0 +1,47 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.0, pytest-9.0.1, pluggy-1.6.0 -- C:\Users\shaun\aubio-beatcheck\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\shaun\aubio-beatcheck
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.12.0, Faker-38.2.0, asyncio-1.3.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 19 items
+
+tests/test_api.py::test_health_check PASSED                              [  5%]
+tests/test_api.py::test_list_suites PASSED                               [ 10%]
+tests/test_api.py::test_run_analysis_start PASSED                        [ 15%]
+tests/test_cli.py::TestPydanticModels::test_beat_annotation_validation PASSED [ 21%]
+tests/test_cli.py::TestPydanticModels::test_beat_annotation_defaults PASSED [ 26%]
+tests/test_cli.py::TestPydanticModels::test_onset_annotation_type_validation PASSED [ 31%]
+tests/test_cli.py::TestPydanticModels::test_signal_metadata_validation PASSED [ 36%]
+tests/test_cli.py::TestPydanticModels::test_signal_definition_serialization PASSED [ 42%]
+tests/test_cli.py::TestEvaluator::test_perfect_detection PASSED          [ 47%]
+tests/test_cli.py::TestEvaluator::test_missed_events PASSED              [ 52%]
+tests/test_cli.py::TestEvaluator::test_false_positives PASSED            [ 57%]
+tests/test_cli.py::TestEvaluator::test_timing_tolerance PASSED           [ 63%]
+tests/test_cli.py::TestEvaluator::test_empty_ground_truth PASSED         [ 68%]
+tests/test_cli.py::TestEvaluator::test_empty_detected PASSED             [ 73%]
+tests/test_cli.py::TestCLIAnalysis::test_tempo_suite_outputs PASSED      [ 78%]
+tests/test_cli.py::TestCLIAnalysis::test_onset_suite_outputs PASSED      [ 84%]
+tests/test_cli.py::TestCLIAnalysis::test_pitch_suite_outputs PASSED      [ 89%]
+tests/test_cli.py::TestCLIAnalysis::test_plots_generated PASSED          [ 94%]
+tests/test_cli.py::TestEvaluationMetricsSerialization::test_model_dump PASSED [100%]
+
+============================== warnings summary ===============================
+.venv\Lib\site-packages\litestar\utils\predicates.py:81: 67 warnings
+tests/test_api.py: 3 warnings
+  C:\Users\shaun\aubio-beatcheck\.venv\Lib\site-packages\litestar\utils\predicates.py:81: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    return iscoroutinefunction(value) or (
+
+.venv\Lib\site-packages\litestar\utils\predicates.py:82: 57 warnings
+tests/test_api.py: 2 warnings
+  C:\Users\shaun\aubio-beatcheck\.venv\Lib\site-packages\litestar\utils\predicates.py:82: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    callable(value) and iscoroutinefunction(value.__call__)  # type: ignore[operator]
+
+.venv\Lib\site-packages\litestar\plugins\pydantic\utils.py:28
+  C:\Users\shaun\aubio-beatcheck\.venv\Lib\site-packages\litestar\plugins\pydantic\utils.py:28: UserWarning: Core Pydantic V1 functionality isn't compatible with Python 3.14 or greater.
+    from pydantic import v1 as pydantic_v1
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+====================== 19 passed, 130 warnings in 12.14s ======================

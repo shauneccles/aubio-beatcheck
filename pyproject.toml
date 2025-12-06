@@ -80,3 +80,18 @@ convention = "google"
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    # Treat warnings as errors for our own code
+    "error::DeprecationWarning:aubio_beatcheck.*:",
+    "error::DeprecationWarning:web_api.*:",
+    "error::DeprecationWarning:tests.*:",
+    # Third-party warnings we cannot fix (issues in litestar/pydantic packages)
+    # litestar uses deprecated asyncio.iscoroutinefunction - fixed in future versions
+    "ignore:.*iscoroutinefunction.*:DeprecationWarning",
+    # pydantic v1 compatibility layer warning on Python 3.14+
+    "ignore:.*Pydantic V1.*:UserWarning",
+]
