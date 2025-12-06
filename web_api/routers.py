@@ -1,23 +1,27 @@
+"""Litestar API Routers.
+
+REST API endpoints for running aubio analysis and retrieving results.
+"""
+
 import numpy as np
-from typing import List, Dict
-from litestar import Controller, get, post, Response
+from litestar import Controller, Response, get, post
 from litestar.background_tasks import BackgroundTask
 from litestar.exceptions import NotFoundException
 from loguru import logger
 
-from aubio_beatcheck.suites.standard import StandardSuites
 from aubio_beatcheck.core.analyzers import (
     AnalyzerConfig,
-    TempoAnalyzer,
     OnsetAnalyzer,
     PitchAnalyzer,
+    TempoAnalyzer,
 )
+from aubio_beatcheck.core.evaluation import Evaluator
+from aubio_beatcheck.suites.standard import StandardSuites
+
 from .models import AnalysisRequest, AnalysisResult, SuiteInfo
 
-from aubio_beatcheck.core.evaluation import Evaluator
-
 # In-memory storage for results (for simplicity)
-results_store: Dict[str, List[AnalysisResult]] = {}
+results_store: dict[str, list[AnalysisResult]] = {}
 
 
 async def process_analysis(suite_id: str, request: AnalysisRequest) -> None:

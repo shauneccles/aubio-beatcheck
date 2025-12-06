@@ -1,0 +1,121 @@
+name: Aubio Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Signal duration in seconds'
+        required: false
+        default: '10'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Install uv
+        uses: astral-sh/setup-uv@v@v7.1.4
+        with:
+          version: "latest"
+      
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras --dev
+      
+      - name: Run linting
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      
+      - name: Run tests
+        run: |
+          uv run pytest tests/ -v --tb=short
+      
+      - name: Run benchmark suite
+        run: |
+          uv run aubio-beatcheck run --suite all --duration ${{ github.event.inputs.duration || '10' }} --output ./benchmark_results
+      
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: benchmark-results
+          path: ./benchmark_results/
+          retention-days: 30
+      
+      - name: Check for regressions
+        run: |
+          echo "=== Benchmark Results ==="
+          cat ./benchmark_results/evaluation.json
+          
+          # Check if any signals failed
+          FAILED=$(jq '.summary.failed' ./benchmark_results/evaluation.json)
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::warning::$FAILED signals failed analysis"
+          fi
+          
+          # Check pass rate
+          PASS_RATE=$(jq '.summary.pass_rate' ./benchmark_results/evaluation.json)
+          echo "Pass rate: $PASS_RATE"
+          
+          # Fail if pass rate is below threshold
+          if (( $(echo "$PASS_RATE < 0.9" | bc -l) )); then
+            echo "::error::Pass rate $PASS_RATE is below 90% threshold"
+            exit 1
+          fi
+      
+      - name: Generate summary
+        run: |
+          echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Total Signals | $(jq '.summary.total' ./benchmark_results/evaluation.json) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Completed | $(jq '.summary.completed' ./benchmark_results/evaluation.json) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Failed | $(jq '.summary.failed' ./benchmark_results/evaluation.json) |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pass Rate | $(jq '.summary.pass_rate' ./benchmark_results/evaluation.json) |" >> $GITHUB_STEP_SUMMARY
+
+  compare-baseline:
+    runs-on: ubuntu-latest
+    needs: benchmark
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Download current results
+        uses: actions/download-artifact@v6
+        with:
+          name: benchmark-results
+          path: ./current_results
+      
+      - name: Download baseline (if exists)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: benchmark.yml
+          branch: main
+          name: benchmark-results
+          path: ./baseline_results
+        continue-on-error: true
+      
+      - name: Compare results
+        if: success()
+        run: |
+          if [ -d "./baseline_results" ]; then
+            echo "## Comparison to Baseline" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            BASELINE_F=$(jq '.summary.pass_rate' ./baseline_results/evaluation.json 2>/dev/null || echo "0")
+            CURRENT_F=$(jq '.summary.pass_rate' ./current_results/evaluation.json)
+            
+            echo "| Baseline | Current | Delta |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|---------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| $BASELINE_F | $CURRENT_F | $(echo "$CURRENT_F - $BASELINE_F" | bc -l) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No baseline available for comparison" >> $GITHUB_STEP_SUMMARY
+          fi

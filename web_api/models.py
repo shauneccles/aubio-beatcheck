@@ -1,5 +1,6 @@
+from typing import Any
+
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
 
 
 class SuiteInfo(BaseModel):
@@ -10,11 +11,11 @@ class SuiteInfo(BaseModel):
 
 class AnalysisRequest(BaseModel):
     duration: float = 10.0
-    config: Dict[str, Any] = {}
+    config: dict[str, Any] = {}
 
 
 class AnalysisResult(BaseModel):
     signal_name: str
     status: str
-    metrics: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    metrics: dict[str, Any] | None = None
+    error: str | None = None

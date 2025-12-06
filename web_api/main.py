@@ -1,10 +1,11 @@
+import sys
 from pathlib import Path
+
 from litestar import Litestar, get
 from litestar.config.cors import CORSConfig
 from litestar.static_files import StaticFilesConfig
 from litestar.status_codes import HTTP_200_OK
 from loguru import logger
-import sys
 
 # Configure logger
 logger.remove()

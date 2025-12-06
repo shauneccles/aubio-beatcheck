@@ -4,3 +4,5 @@ logs
 *.egg-info
 test_output
 .pytest_cache
+build
+dist

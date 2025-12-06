@@ -1,5 +1,4 @@
-"""
-Signal Generation Wrapper
+"""Signal Generation Wrapper.
 
 This module provides a unified interface to thebeat-based signal generation,
 re-exporting the thebeat_generator functions with a clean API for the application.
@@ -27,8 +26,7 @@ __all__ = [
 
 
 class SignalGenerator:
-    """
-    Unified interface for signal generation using thebeat.
+    """Unified interface for signal generation using thebeat.
 
     This class provides convenient methods for generating test signals
     with known ground truth for validating aubio analysis.
@@ -43,8 +41,7 @@ class SignalGenerator:
         jitter_std_ms: float = 10.0,
         rng_seed: int | None = None,
     ) -> tuple[any, SignalDefinition]:
-        """
-        Generate isochronous click track.
+        """Generate isochronous click track.
 
         Args:
             bpm: Tempo in beats per minute
@@ -74,8 +71,7 @@ class SignalGenerator:
         frequency: float = 1000.0,
         waveform: str = "sine",
     ) -> tuple[any, SignalDefinition]:
-        """
-        Generate signal with various onset attack types.
+        """Generate signal with various onset attack types.
 
         Args:
             attack_type: 'impulse', 'sharp', 'medium', or 'slow'
@@ -101,8 +97,7 @@ class SignalGenerator:
         note_duration: float = 0.5,
         waveform: str = "sine",
     ) -> tuple[any, SignalDefinition]:
-        """
-        Generate sequence of musical notes.
+        """Generate sequence of musical notes.
 
         Args:
             midi_notes: List of MIDI note numbers (21-108)
@@ -125,8 +120,7 @@ class SignalGenerator:
         note_duration: float = 0.5,
         waveform: str = "sine",
     ) -> tuple[any, SignalDefinition]:
-        """
-        Generate chromatic scale.
+        """Generate chromatic scale.
 
         Args:
             start_midi: Starting MIDI note number
@@ -151,8 +145,7 @@ class SignalGenerator:
         click_duration_ms: float = 50.0,
         frequency: float = 1000.0,
     ) -> tuple[any, SignalDefinition]:
-        """
-        Generate complex rhythmic pattern from binary notation.
+        """Generate complex rhythmic pattern from binary notation.
 
         Args:
             pattern: Binary pattern string (e.g., "1001101010010110")
@@ -178,8 +171,7 @@ class SignalGenerator:
         snr_db: float = 20.0,
         rng_seed: int | None = None,
     ) -> tuple[any, SignalDefinition]:
-        """
-        Generate complex signal with beats, melody, and noise.
+        """Generate complex signal with beats, melody, and noise.
 
         Args:
             bpm: Tempo in beats per minute

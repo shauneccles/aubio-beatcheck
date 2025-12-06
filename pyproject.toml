@@ -5,9 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aubio-beatcheck"
 version = "0.1.0"
-description = "A comprehensive validation application for aubio audio analysis functions"
+description = "A comprehensive validation and benchmarking tool for aubio audio analysis"
 readme = "README.md"
+license = {text = "GPL-3.0"}
 requires-python = ">=3.12"
+authors = [
+    {name = "Shaun Eccles", email = "shaun@ledfx.app"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering",
+]
+keywords = ["aubio", "audio", "analysis", "beat", "tempo", "onset", "pitch", "validation", "benchmark"]
+
 dependencies = [
     "aubio-ledfx>=0.4.11",
     "thebeat[music-notation]>=0.3.0",
@@ -21,6 +36,11 @@ dependencies = [
     "pydantic>=2.0.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/shauneccles/aubio-beatcheck"
+Repository = "https://github.com/shauneccles/aubio-beatcheck"
+Issues = "https://github.com/shauneccles/aubio-beatcheck/issues"
+
 [project.scripts]
 aubio-beatcheck = "aubio_beatcheck.cli:main"
 
@@ -33,4 +53,29 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["aubio_beatcheck*"]
+include = ["aubio_beatcheck*", "web_api*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+]
+ignore = [
+    "E402",   # Module level import not at top of file
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

@@ -1,5 +1,4 @@
-"""
-Aubio BeatCheck - Main Entry Point
+"""Aubio BeatCheck - Main Entry Point.
 
 A comprehensive validation application for aubio's tempo, onset,
 pitch, and phase vocoder analysis functions.

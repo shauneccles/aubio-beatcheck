@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Aubio BeatCheck - CLI Entry Point
+"""Aubio BeatCheck - CLI Entry Point.
 
 Command-line interface for the aubio validation application.
 Supports both web UI mode and CLI mode for AI agent integration.
@@ -10,21 +9,19 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Optional
 
+import numpy as np
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from aubio_beatcheck.suites.standard import StandardSuites
 from aubio_beatcheck.core.analyzers import (
     AnalyzerConfig,
-    TempoAnalyzer,
     OnsetAnalyzer,
     PitchAnalyzer,
+    TempoAnalyzer,
 )
-from aubio_beatcheck.core.evaluation import Evaluator, EvaluationMetrics
-import numpy as np
-
+from aubio_beatcheck.core.evaluation import EvaluationMetrics, Evaluator
+from aubio_beatcheck.suites.standard import StandardSuites
 
 # --- Pydantic Models for CLI Output ---
 
@@ -43,17 +40,17 @@ class SignalResult(BaseModel):
     signal_name: str
     category: str
     status: str
-    tempo_bpm: Optional[float] = None
-    beat_count: Optional[int] = None
-    onset_count: Optional[int] = None
-    pitch_count: Optional[int] = None
+    tempo_bpm: float | None = None
+    beat_count: int | None = None
+    onset_count: int | None = None
+    pitch_count: int | None = None
     detected_events: list[float] = Field(default_factory=list)
     ground_truth_events: list[float] = Field(default_factory=list)
-    evaluation: Optional[EvaluationMetrics] = None
-    performance_mean_us: Optional[float] = None
-    performance_p95_us: Optional[float] = None
-    error: Optional[str] = None
-    plot_path: Optional[str] = None
+    evaluation: EvaluationMetrics | None = None
+    performance_mean_us: float | None = None
+    performance_p95_us: float | None = None
+    error: str | None = None
+    plot_path: str | None = None
 
 
 class AnalysisResultsOutput(BaseModel):
@@ -231,25 +228,53 @@ def analyze_signal(signal, plots_dir: Path) -> SignalResult:
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent))
-        from web_api.plotting import generate_analysis_plot
 
         plot_path = plots_dir / f"{signal.name}.png"
-        event_type = (
-            "Beats"
-            if signal.category == "tempo"
-            else "Onsets"
-            if signal.category == "onset"
-            else "Pitches"
-        )
 
-        plot_bytes = generate_analysis_plot(
-            signal_name=signal.name,
-            audio=signal.audio,
-            sample_rate=int(signal.signal_def.metadata.sample_rate),
-            ground_truth_events=result.ground_truth_events,
-            detected_events=result.detected_events,
-            event_type=event_type,
-        )
+        if signal.category == "pitch":
+            # Use pitch-specific piano roll visualization
+            from web_api.plotting import generate_pitch_analysis_plot
+
+            # Get ground truth pitch annotations as dicts
+            gt_pitches = [
+                {
+                    "start_time": p.start_time,
+                    "end_time": p.end_time,
+                    "midi_note": p.midi_note,
+                    "frequency_hz": p.frequency_hz,
+                }
+                for p in signal.signal_def.ground_truth.pitches
+            ]
+
+            # Get detected pitches (already have full data from analyzer)
+            detected_pitch_data = pitches if signal.category == "pitch" else []
+
+            # Get tolerance from test criteria
+            tolerance = signal.signal_def.test_criteria.pitch_tolerance_cents or 50.0
+
+            plot_bytes = generate_pitch_analysis_plot(
+                signal_name=signal.name,
+                audio=signal.audio,
+                sample_rate=int(signal.signal_def.metadata.sample_rate),
+                ground_truth_pitches=gt_pitches,
+                detected_pitches=detected_pitch_data,
+                pitch_tolerance_cents=tolerance,
+            )
+        else:
+            # Use standard event-based visualization for tempo/onset
+            from web_api.plotting import generate_analysis_plot
+
+            event_type = "Beats" if signal.category == "tempo" else "Onsets"
+
+            plot_bytes = generate_analysis_plot(
+                signal_name=signal.name,
+                audio=signal.audio,
+                sample_rate=int(signal.signal_def.metadata.sample_rate),
+                ground_truth_events=result.ground_truth_events,
+                detected_events=result.detected_events,
+                event_type=event_type,
+            )
+
         plot_path.write_bytes(plot_bytes)
         result.plot_path = str(plot_path)
 
@@ -316,6 +341,12 @@ def main():
         help="Server host (default: 127.0.0.1)",
     )
 
+    # Save instructions command
+    subparsers.add_parser(
+        "save-instructions",
+        help="Save AI agent instructions to current directory",
+    )
+
     args = parser.parse_args()
     setup_logging(verbose=getattr(args, "verbose", False))
 
@@ -326,9 +357,35 @@ def main():
 
         uvicorn.run("web_api.main:app", host=args.host, port=args.port, reload=True)
         return 0
+    elif args.command == "save-instructions":
+        return save_agent_instructions()
     else:
         parser.print_help()
         return 0
+
+
+def save_agent_instructions() -> int:
+    """Save agent instructions to current directory."""
+    try:
+        # Read the bundled instructions file
+        instructions_path = Path(__file__).parent.parent / "docs" / "AGENT_INSTRUCTIONS.md"
+        
+        if not instructions_path.exists():
+            print(f"Error: Instructions file not found at {instructions_path}")
+            return 1
+        
+        content = instructions_path.read_text(encoding="utf-8")
+        
+        # Write to current directory
+        output_path = Path.cwd() / "AGENT_INSTRUCTIONS.md"
+        output_path.write_text(content, encoding="utf-8")
+        
+        print(f"Agent instructions saved to: {output_path}")
+        return 0
+        
+    except Exception as e:
+        print(f"Error saving instructions: {e}")
+        return 1
 
 
 if __name__ == "__main__":

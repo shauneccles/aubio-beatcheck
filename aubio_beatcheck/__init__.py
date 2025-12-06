@@ -1,5 +1,4 @@
-"""
-Aubio BeatCheck - Validation Application for Aubio Audio Analysis
+"""Aubio BeatCheck - Validation Application for Aubio Audio Analysis.
 
 A comprehensive application for testing and validating aubio's tempo, onset,
 pitch, and phase vocoder (pvoc) analysis functions using thebeat-based

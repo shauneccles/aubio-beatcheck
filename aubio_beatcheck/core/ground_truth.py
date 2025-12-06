@@ -1,5 +1,4 @@
-"""
-Ground Truth Schema for Audio Analysis Testing
+"""Ground Truth Schema for Audio Analysis Testing.
 
 This module defines Pydantic models for ground truth data used in
 validating audio analysis accuracy. Ground truth accompanies each
@@ -7,8 +6,8 @@ synthetic test signal.
 """
 
 from typing import Literal
-from pydantic import BaseModel, Field, model_validator
 
+from pydantic import BaseModel, Field, model_validator
 
 # Shared constants for attack types
 STANDARD_ATTACK_TYPES = Literal["impulse", "sharp", "medium", "slow"]
@@ -60,7 +59,7 @@ class SignalMetadata(BaseModel):
     duration: float = Field(ge=0.1, description="Duration in seconds")
     description: str = Field(description="Human-readable description")
     bpm: float = Field(
-        default=0.0, ge=0, le=300, description="Tempo in BPM (0 if not applicable)"
+        default=0.0, ge=0, le=600, description="Tempo in BPM (0 if not applicable)"
     )
     channels: int = Field(default=1, ge=1, le=2, description="Number of audio channels")
 

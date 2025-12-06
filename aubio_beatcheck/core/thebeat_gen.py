@@ -1,10 +1,7 @@
-"""
-TheBeat-Based Signal Generator
+"""TheBeat-Based Signal Generator.
 
 Generates audio signals using the thebeat library with authoritative ground truth timing.
 """
-
-from typing import Optional
 
 import numpy as np
 from thebeat import Sequence, SoundSequence, SoundStimulus
@@ -27,10 +24,53 @@ def midi_to_frequency(midi_note: int) -> float:
     return 440.0 * (2.0 ** ((midi_note - 69) / 12.0))
 
 
+def round_to_sample_boundary(seq: Sequence, sample_rate: int) -> None:
+    """Round sequence onsets to exact sample boundaries.
+
+    This eliminates the thebeat frame rounding warning by ensuring that
+    onset times in milliseconds correspond to exact integer sample positions.
+
+    Args:
+        seq: The Sequence object to modify in place.
+        sample_rate: Audio sample rate in Hz.
+    """
+    # Sample duration in ms = 1000 / sample_rate
+    # For 44100 Hz, this is ~0.0227 ms per sample
+    sample_duration_ms = 1000.0 / sample_rate
+
+    # Get current onsets and round to nearest sample boundary
+    current_onsets = seq.onsets.copy()
+    
+    # Convert to samples, round to integer, convert back to ms
+    samples = current_onsets * sample_rate / 1000.0
+    aligned_samples = np.round(samples)
+    aligned_onsets = aligned_samples * 1000.0 / sample_rate
+
+    # Update the sequence's onsets using the property setter
+    seq.onsets = aligned_onsets
+
+
+def align_duration_to_samples(duration_ms: float, sample_rate: int) -> float:
+    """Align a duration in milliseconds to exact sample boundaries.
+
+    Ensures the duration corresponds to an integer number of samples.
+
+    Args:
+        duration_ms: Duration in milliseconds.
+        sample_rate: Audio sample rate in Hz.
+
+    Returns:
+        Aligned duration in milliseconds.
+    """
+    samples = duration_ms * sample_rate / 1000.0
+    aligned_samples = round(samples)
+    return aligned_samples * 1000.0 / sample_rate
+
+
 def extract_ground_truth_from_sequence(
     trial: SoundSequence,
     signal_type: str = "tempo",
-    midi_notes: Optional[list[int]] = None,
+    midi_notes: list[int] | None = None,
     attack_type: str = "sharp",
     attack_ms: float = 1.0,
 ) -> GroundTruth:
@@ -70,7 +110,9 @@ def extract_ground_truth_from_sequence(
         iois_seconds = trial.iois / 1000.0
         ground_truth.pitches = []
 
-        for i, (onset, midi_note) in enumerate(zip(onsets_seconds, midi_notes)):
+        for i, (onset, midi_note) in enumerate(
+            zip(onsets_seconds, midi_notes, strict=False)
+        ):
             if i < len(iois_seconds):
                 duration = float(iois_seconds[i])
             else:
@@ -97,7 +139,7 @@ def generate_click_track(
     click_freq: float = 1000.0,
     add_timing_jitter: bool = False,
     jitter_std_ms: float = 0.0,
-    rng_seed: Optional[int] = None,
+    rng_seed: int | None = None,
 ) -> tuple[np.ndarray, SignalDefinition]:
     """Generate a click track at a specific tempo using thebeat."""
     from loguru import logger
@@ -114,7 +156,7 @@ def generate_click_track(
         rng = np.random.default_rng(rng_seed)
         seq.add_noise_gaussian(noise_sd=jitter_std_ms, rng=rng)
 
-    seq.round_onsets()
+    round_to_sample_boundary(seq, sample_rate)
 
     # Calculate click duration based on IOI to ensure it fits
     # thebeat's SoundSequence will place the sound at specific sample positions
@@ -126,16 +168,16 @@ def generate_click_track(
     else:
         safe_click_duration_ms = click_duration_ms
 
-    # Calculate exact samples using the same formula SoundStimulus will use
-    # SoundStimulus.generate() uses: int(duration_ms * fs / 1000)
-    actual_click_samples = int(safe_click_duration_ms * sample_rate / 1000.0)
+    # Calculate exact samples using round() to match thebeat's calculation
+    # thebeat's synthesize_sound uses: round(fs * t) where t = duration_ms / 1000
+    actual_click_samples = round(safe_click_duration_ms * sample_rate / 1000.0)
 
     # Ensure even number of samples to avoid rounding issues in thebeat's SoundSequence
     # when placing sounds at half-sample positions (e.g. 0.5 rounds to 0, 1.5 rounds to 2)
     if actual_click_samples % 2 != 0:
         actual_click_samples -= 1
 
-    # Convert back to ms using exact inverse to ensure consistency
+    # Convert back to ms - this value when multiplied by fs/1000 should give exact integer
     actual_click_duration_ms = (actual_click_samples * 1000.0) / sample_rate
 
     logger.debug(
@@ -144,12 +186,15 @@ def generate_click_track(
         f"actual_click={actual_click_duration_ms:.4f}ms ({actual_click_samples} samples)"
     )
 
+    # Align ramp times to sample boundaries
+    aligned_ramp_ms = align_duration_to_samples(5.0, sample_rate)
+
     stim = SoundStimulus.generate(
         freq=click_freq,
         duration_ms=actual_click_duration_ms,
         fs=sample_rate,
-        onramp_ms=5.0,
-        offramp_ms=5.0,
+        onramp_ms=aligned_ramp_ms,
+        offramp_ms=aligned_ramp_ms,
         ramp_type="raised-cosine",
         amplitude=1.0,
         oscillator="sine",
@@ -207,26 +252,32 @@ def generate_onset_signal(
     attack_ms = attack_times[attack_type]
     onset_duration_ms = attack_ms + 100.0
 
+    # Align all durations to sample boundaries
+    aligned_interval_ms = align_duration_to_samples(interval_ms, sample_rate)
+    aligned_duration_ms = align_duration_to_samples(onset_duration_ms, sample_rate)
+    aligned_attack_ms = align_duration_to_samples(attack_ms, sample_rate)
+    aligned_offramp_ms = align_duration_to_samples(50.0, sample_rate)
+
     stim = SoundStimulus.generate(
         freq=frequency,
-        duration_ms=onset_duration_ms,
+        duration_ms=aligned_duration_ms,
         fs=sample_rate,
-        onramp_ms=attack_ms,
-        offramp_ms=50.0,
+        onramp_ms=aligned_attack_ms,
+        offramp_ms=aligned_offramp_ms,
         ramp_type="linear" if attack_type != "impulse" else "raised-cosine",
         amplitude=1.0,
         oscillator="sine",
     )
 
-    n_events = int(duration / (interval_ms / 1000.0))
+    n_events = int(duration / (aligned_interval_ms / 1000.0))
     seq = Sequence.generate_isochronous(
-        n_events=n_events, ioi=interval_ms, end_with_interval=False
+        n_events=n_events, ioi=aligned_interval_ms, end_with_interval=False
     )
-    seq.round_onsets()
+    round_to_sample_boundary(seq, sample_rate)
 
     trial = SoundSequence(stim, seq, sequence_time_unit="ms")
     ground_truth = extract_ground_truth_from_sequence(
-        trial, signal_type="onset", attack_type=attack_type, attack_ms=attack_ms
+        trial, signal_type="onset", attack_type=attack_type, attack_ms=aligned_attack_ms
     )
 
     signal_def = SignalDefinition(
@@ -268,24 +319,28 @@ def generate_pitch_sequence(
     note_duration_ms = note_duration * 1000.0
     fade_ms = 10.0
 
+    # Align durations to sample boundaries
+    aligned_note_duration_ms = align_duration_to_samples(note_duration_ms, sample_rate)
+    aligned_fade_ms = align_duration_to_samples(fade_ms, sample_rate)
+
     stimuli = []
     for midi_note in midi_notes:
         freq = midi_to_frequency(midi_note)
         stim = SoundStimulus.generate(
             freq=freq,
-            duration_ms=note_duration_ms,
+            duration_ms=aligned_note_duration_ms,
             fs=sample_rate,
-            onramp_ms=fade_ms,
-            offramp_ms=fade_ms,
+            onramp_ms=aligned_fade_ms,
+            offramp_ms=aligned_fade_ms,
             amplitude=0.8,
             oscillator=oscillator,
         )
         stimuli.append(stim)
 
     seq = Sequence.generate_isochronous(
-        n_events=len(midi_notes), ioi=note_duration_ms, end_with_interval=False
+        n_events=len(midi_notes), ioi=aligned_note_duration_ms, end_with_interval=False
     )
-    seq.round_onsets()
+    round_to_sample_boundary(seq, sample_rate)
 
     trial = SoundSequence(stimuli, seq, sequence_time_unit="ms")
     ground_truth = extract_ground_truth_from_sequence(
@@ -335,23 +390,28 @@ def generate_rhythmic_pattern(
     frequency: float = 1000.0,
 ) -> tuple[np.ndarray, SignalDefinition]:
     """Generate a rhythmic pattern from binary string notation."""
+    # Align all durations to sample boundaries
+    aligned_click_ms = align_duration_to_samples(click_duration_ms, sample_rate)
+    aligned_grid_ms = align_duration_to_samples(grid_ioi_ms, sample_rate)
+    aligned_ramp_ms = align_duration_to_samples(5.0, sample_rate)
+
     stim = SoundStimulus.generate(
         freq=frequency,
-        duration_ms=click_duration_ms,
+        duration_ms=aligned_click_ms,
         fs=sample_rate,
-        onramp_ms=5.0,
-        offramp_ms=5.0,
+        onramp_ms=aligned_ramp_ms,
+        offramp_ms=aligned_ramp_ms,
         amplitude=1.0,
         oscillator="sine",
     )
 
-    seq = Sequence.from_binary_string(pattern, grid_ioi=grid_ioi_ms)
-    seq.round_onsets()
+    seq = Sequence.from_binary_string(pattern, grid_ioi=aligned_grid_ms)
+    round_to_sample_boundary(seq, sample_rate)
 
     trial = SoundSequence(stim, seq, sequence_time_unit="ms")
     ground_truth = extract_ground_truth_from_sequence(trial, signal_type="tempo")
 
-    avg_ioi_ms = np.mean(trial.iois) if len(trial.iois) > 0 else grid_ioi_ms
+    avg_ioi_ms = np.mean(trial.iois) if len(trial.iois) > 0 else aligned_grid_ms
     avg_bpm = 60000.0 / avg_ioi_ms
 
     signal_def = SignalDefinition(
@@ -377,9 +437,9 @@ def generate_complex_signal(
     bpm: float = 120,
     duration: float = 30.0,
     sample_rate: int = DEFAULT_SAMPLE_RATE,
-    melody_notes: Optional[list[int]] = None,
+    melody_notes: list[int] | None = None,
     snr_db: float = 20.0,
-    rng_seed: Optional[int] = None,
+    rng_seed: int | None = None,
 ) -> tuple[np.ndarray, SignalDefinition]:
     """Generate a complex test signal combining beats and pitch with noise."""
     audio, signal_def = generate_click_track(

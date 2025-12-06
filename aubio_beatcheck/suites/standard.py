@@ -1,11 +1,11 @@
-"""
-Standard Test Suites for Aubio Validation
+"""Standard Test Suites for Aubio Validation.
 
 This module defines comprehensive test suites for validating aubio's
 tempo, onset, pitch, and pvoc functionality using thebeat-generated signals.
 """
 
 from dataclasses import dataclass
+
 import numpy as np
 
 from aubio_beatcheck.core.ground_truth import SignalDefinition
@@ -31,8 +31,7 @@ class TestSignal:
 
 
 class StandardSuites:
-    """
-    Pre-defined test suites for comprehensive aubio validation.
+    """Pre-defined test suites for comprehensive aubio validation.
 
     Each suite contains multiple signals designed to test specific
     aspects of aubio's analysis capabilities.
@@ -40,8 +39,7 @@ class StandardSuites:
 
     @staticmethod
     def tempo_suite(duration: float = 10.0) -> list[TestSignal]:
-        """
-        Tempo/beat tracking test suite.
+        """Tempo/beat tracking test suite.
 
         Tests tempo detection across BPM range with various conditions:
         - Slow (60 BPM), moderate (120 BPM), fast (180 BPM)
@@ -107,8 +105,7 @@ class StandardSuites:
 
     @staticmethod
     def onset_suite(duration: float = 10.0) -> list[TestSignal]:
-        """
-        Onset detection test suite.
+        """Onset detection test suite.
 
         Tests onset detection with various attack characteristics:
         - Attack types: impulse, sharp, medium, slow
@@ -175,8 +172,7 @@ class StandardSuites:
 
     @staticmethod
     def pitch_suite() -> list[TestSignal]:
-        """
-        Pitch detection test suite.
+        """Pitch detection test suite.
 
         Tests pitch detection across musical range:
         - Chromatic scales (different octaves)
@@ -260,8 +256,7 @@ class StandardSuites:
 
     @staticmethod
     def rhythmic_pattern_suite() -> list[TestSignal]:
-        """
-        Rhythmic pattern test suite.
+        """Rhythmic pattern test suite.
 
         Tests complex rhythmic patterns:
         - Syncopation
@@ -300,8 +295,7 @@ class StandardSuites:
 
     @staticmethod
     def complex_suite(duration: float = 10.0) -> list[TestSignal]:
-        """
-        Complex signal test suite.
+        """Complex signal test suite.
 
         Tests combined elements with realistic noise:
         - Beats + melody + noise at various SNR levels
@@ -349,8 +343,7 @@ class StandardSuites:
 
     @classmethod
     def all_suites(cls, duration: float = 10.0) -> dict[str, list[TestSignal]]:
-        """
-        Get all standard test suites.
+        """Get all standard test suites.
 
         Args:
             duration: Duration for tempo/onset/complex suites
@@ -368,8 +361,7 @@ class StandardSuites:
 
     @classmethod
     def get_suite(cls, suite_name: str, duration: float = 10.0) -> list[TestSignal]:
-        """
-        Get a specific test suite by name.
+        """Get a specific test suite by name.
 
         Args:
             suite_name: Name of suite ('tempo', 'onset', 'pitch', 'rhythmic', 'complex', 'all')

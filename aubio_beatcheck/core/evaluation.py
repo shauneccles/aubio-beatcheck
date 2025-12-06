@@ -1,9 +1,6 @@
-"""
-Evaluation module for comparing detected events against ground truth.
-"""
+"""Evaluation module for comparing detected events against ground truth."""
 
 import numpy as np
-from typing import List, Tuple
 from pydantic import BaseModel, Field
 
 
@@ -16,13 +13,13 @@ class EvaluationMetrics(BaseModel):
     mean_absolute_error_ms: float = Field(
         default=0.0, ge=0, description="Mean timing error in ms"
     )
-    false_positives: List[float] = Field(
+    false_positives: list[float] = Field(
         default_factory=list, description="Timestamps of false positives"
     )
-    false_negatives: List[float] = Field(
+    false_negatives: list[float] = Field(
         default_factory=list, description="Timestamps of missed events"
     )
-    matched_events: List[Tuple[float, float]] = Field(
+    matched_events: list[tuple[float, float]] = Field(
         default_factory=list, description="(ground_truth, detected) pairs"
     )
 
@@ -32,10 +29,9 @@ class Evaluator:
 
     @staticmethod
     def evaluate_events(
-        detected: List[float], ground_truth: List[float], tolerance_ms: float = 50.0
+        detected: list[float], ground_truth: list[float], tolerance_ms: float = 50.0
     ) -> EvaluationMetrics:
-        """
-        Evaluate detected events (beats/onsets) against ground truth.
+        """Evaluate detected events (beats/onsets) against ground truth.
 
         Args:
             detected: List of detected timestamps (seconds)

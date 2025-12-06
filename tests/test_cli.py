@@ -1,21 +1,20 @@
-"""
-Tests for CLI functionality and analysis pipeline.
-"""
+"""Tests for CLI functionality and analysis pipeline."""
 
 import json
-import pytest
-from pathlib import Path
-import tempfile
 import shutil
+import tempfile
+from pathlib import Path
+
+import pytest
 
 from aubio_beatcheck.cli import run_analysis
-from aubio_beatcheck.core.evaluation import Evaluator, EvaluationMetrics
+from aubio_beatcheck.core.evaluation import EvaluationMetrics, Evaluator
 from aubio_beatcheck.core.ground_truth import (
     BeatAnnotation,
-    OnsetAnnotation,
-    SignalMetadata,
     GroundTruth,
+    OnsetAnnotation,
     SignalDefinition,
+    SignalMetadata,
 )
 
 
@@ -139,7 +138,7 @@ class TestCLIAnalysis:
 
     def test_tempo_suite_outputs(self, temp_output_dir):
         """Test tempo suite generates expected outputs."""
-        result = run_analysis("tempo", duration=2.0, output_dir=temp_output_dir)
+        run_analysis("tempo", duration=2.0, output_dir=temp_output_dir)
 
         # Check all expected files exist
         assert (temp_output_dir / "test_input.json").exists()
@@ -155,7 +154,7 @@ class TestCLIAnalysis:
 
     def test_onset_suite_outputs(self, temp_output_dir):
         """Test onset suite generates expected outputs."""
-        result = run_analysis("onset", duration=2.0, output_dir=temp_output_dir)
+        run_analysis("onset", duration=2.0, output_dir=temp_output_dir)
 
         analysis = json.loads((temp_output_dir / "analysis_results.json").read_text())
         assert analysis["suite"] == "onset"
@@ -163,7 +162,7 @@ class TestCLIAnalysis:
 
     def test_pitch_suite_outputs(self, temp_output_dir):
         """Test pitch suite generates expected outputs."""
-        result = run_analysis("pitch", duration=2.0, output_dir=temp_output_dir)
+        run_analysis("pitch", duration=2.0, output_dir=temp_output_dir)
 
         analysis = json.loads((temp_output_dir / "analysis_results.json").read_text())
         assert analysis["suite"] == "pitch"

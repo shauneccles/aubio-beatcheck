@@ -1,5 +1,4 @@
-"""
-Aubio Analysis Wrappers
+"""Aubio Analysis Wrappers.
 
 This module provides clean wrapper classes for aubio's tempo, onset, pitch,
 and phase vocoder analysis functions. These classes encapsulate configuration,
@@ -55,8 +54,7 @@ class PerformanceStats:
 
 
 class TempoAnalyzer:
-    """
-    Wrapper for aubio tempo detection.
+    """Wrapper for aubio tempo detection.
 
     Provides beat tracking and BPM estimation with configurable FFT parameters.
     """
@@ -67,8 +65,7 @@ class TempoAnalyzer:
         method: str = "default",
         enable_features: bool = True,
     ):
-        """
-        Initialize tempo analyzer.
+        """Initialize tempo analyzer.
 
         Args:
             config: FFT configuration (uses defaults if None)
@@ -109,8 +106,7 @@ class TempoAnalyzer:
                 pass  # Feature not available
 
     def analyze(self, audio: np.ndarray) -> tuple[list[float], float]:
-        """
-        Analyze tempo and beats in audio signal.
+        """Analyze tempo and beats in audio signal.
 
         Args:
             audio: Audio samples as float32 array
@@ -160,8 +156,7 @@ class TempoAnalyzer:
 
 
 class OnsetAnalyzer:
-    """
-    Wrapper for aubio onset detection.
+    """Wrapper for aubio onset detection.
 
     Detects transient events (note onsets, percussive hits, etc.).
     """
@@ -174,8 +169,7 @@ class OnsetAnalyzer:
         ] = "hfc",
         threshold: float = 0.3,
     ):
-        """
-        Initialize onset analyzer.
+        """Initialize onset analyzer.
 
         Args:
             config: FFT configuration (uses defaults if None)
@@ -195,8 +189,7 @@ class OnsetAnalyzer:
         self._onset.set_threshold(threshold)
 
     def analyze(self, audio: np.ndarray) -> list[float]:
-        """
-        Detect onsets in audio signal.
+        """Detect onsets in audio signal.
 
         Args:
             audio: Audio samples as float32 array
@@ -246,8 +239,7 @@ class OnsetAnalyzer:
 
 
 class PitchAnalyzer:
-    """
-    Wrapper for aubio pitch detection.
+    """Wrapper for aubio pitch detection.
 
     Detects fundamental frequency and converts to MIDI note numbers.
     """
@@ -260,8 +252,7 @@ class PitchAnalyzer:
         ] = "yinfft",
         tolerance: float = 0.8,
     ):
-        """
-        Initialize pitch analyzer.
+        """Initialize pitch analyzer.
 
         Args:
             config: FFT configuration (uses defaults if None)
@@ -284,8 +275,7 @@ class PitchAnalyzer:
     def analyze(
         self, audio: np.ndarray, min_confidence: float = 0.0
     ) -> list[tuple[float, float, float]]:
-        """
-        Detect pitch in audio signal.
+        """Detect pitch in audio signal.
 
         Args:
             audio: Audio samples as float32 array
@@ -340,8 +330,7 @@ class PitchAnalyzer:
 
 
 class PvocAnalyzer:
-    """
-    Wrapper for aubio phase vocoder.
+    """Wrapper for aubio phase vocoder.
 
     Performs time-stretching and pitch-shifting operations.
     """
@@ -350,8 +339,7 @@ class PvocAnalyzer:
         self,
         config: AnalyzerConfig | None = None,
     ):
-        """
-        Initialize phase vocoder analyzer.
+        """Initialize phase vocoder analyzer.
 
         Args:
             config: FFT configuration (uses defaults if None)
@@ -362,8 +350,7 @@ class PvocAnalyzer:
         self._pvoc = aubio.pvoc(self.config.fft_size, self.config.hop_size)
 
     def analyze_forward(self, audio: np.ndarray) -> np.ndarray:
-        """
-        Perform forward phase vocoder transform (time -> frequency).
+        """Perform forward phase vocoder transform (time -> frequency).
 
         Args:
             audio: Audio samples as float32 array
@@ -396,8 +383,7 @@ class PvocAnalyzer:
         return np.array(spectra)
 
     def analyze_inverse(self, spectrum: np.ndarray) -> np.ndarray:
-        """
-        Perform inverse phase vocoder transform (frequency -> time).
+        """Perform inverse phase vocoder transform (frequency -> time).
 
         Args:
             spectrum: Complex spectrum
