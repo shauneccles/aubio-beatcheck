@@ -368,21 +368,23 @@ def save_agent_instructions() -> int:
     """Save agent instructions to current directory."""
     try:
         # Read the bundled instructions file
-        instructions_path = Path(__file__).parent.parent / "docs" / "AGENT_INSTRUCTIONS.md"
-        
+        instructions_path = (
+            Path(__file__).parent.parent / "docs" / "AGENT_INSTRUCTIONS.md"
+        )
+
         if not instructions_path.exists():
             print(f"Error: Instructions file not found at {instructions_path}")
             return 1
-        
+
         content = instructions_path.read_text(encoding="utf-8")
-        
+
         # Write to current directory
         output_path = Path.cwd() / "AGENT_INSTRUCTIONS.md"
         output_path.write_text(content, encoding="utf-8")
-        
+
         print(f"Agent instructions saved to: {output_path}")
         return 0
-        
+
     except Exception as e:
         print(f"Error saving instructions: {e}")
         return 1

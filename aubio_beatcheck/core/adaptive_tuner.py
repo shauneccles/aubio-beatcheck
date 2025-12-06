@@ -5,7 +5,6 @@ data to find and maintain optimal configurations for aubio analysis.
 """
 
 import json
-from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -16,7 +15,6 @@ from pydantic import BaseModel, Field
 from aubio_beatcheck.core.analyzers import AnalyzerConfig
 from aubio_beatcheck.core.benchmark_db import BenchmarkDB
 from aubio_beatcheck.core.evaluation import Evaluator
-from aubio_beatcheck.core.grid_search import GridSearchResult, ParameterGrid
 from aubio_beatcheck.core.multi_objective import (
     MultiObjectiveEvaluator,
     OptimizationObjectives,
@@ -199,7 +197,7 @@ class AdaptiveTuner:
         best_score = 0.0
         tested_params = []
 
-        for iteration in range(max_iterations):
+        for _iteration in range(max_iterations):
             # Get suggestion
             suggestion = self.suggest(suite, signal_type, tested_params)
             params = suggestion.params
@@ -226,7 +224,6 @@ class AdaptiveTuner:
             metrics = Evaluator.evaluate_events(detected, ground_truth, tolerance_ms)
 
             # Compute composite score
-            from aubio_beatcheck.core.analyzers import PerformanceStats
 
             stats = analyzer.stats
             composite = self.evaluator.compute_composite_score(metrics, stats)
@@ -362,22 +359,26 @@ class AdaptiveTuner:
                 results = json.loads(run.results_json)
                 config = results.get("config", {})
                 if config:
-                    param_scores.append({
-                        "params": config,
+                    param_scores.append(
+                        {
+                            "params": config,
+                            "f_measure": run.avg_f_measure,
+                            "precision": run.avg_precision,
+                            "recall": run.avg_recall,
+                            "mae_ms": run.avg_mae_ms,
+                        }
+                    )
+            except (json.JSONDecodeError, KeyError):
+                # Use defaults if config not stored
+                param_scores.append(
+                    {
+                        "params": {"fft_size": 2048, "hop_size": 512},
                         "f_measure": run.avg_f_measure,
                         "precision": run.avg_precision,
                         "recall": run.avg_recall,
                         "mae_ms": run.avg_mae_ms,
-                    })
-            except (json.JSONDecodeError, KeyError):
-                # Use defaults if config not stored
-                param_scores.append({
-                    "params": {"fft_size": 2048, "hop_size": 512},
-                    "f_measure": run.avg_f_measure,
-                    "precision": run.avg_precision,
-                    "recall": run.avg_recall,
-                    "mae_ms": run.avg_mae_ms,
-                })
+                    }
+                )
 
         if not param_scores:
             result = {"has_data": False}
@@ -474,7 +475,11 @@ class AdaptiveTuner:
 
         threshold = rng.choice(possible_thresh)
 
-        params = {"fft_size": int(fft_size), "hop_size": int(hop_size), "threshold": threshold}
+        params = {
+            "fft_size": int(fft_size),
+            "hop_size": int(hop_size),
+            "threshold": threshold,
+        }
 
         # Check if already tried
         if params in exclude:
@@ -508,17 +513,27 @@ class AdaptiveTuner:
 
         # With high probability, keep best values; with low, try neighbor
         if rng.random() > 0.7:
-            fft_idx = fft_options.index(current_fft) if current_fft in fft_options else 1
-            fft_idx = int(np.clip(fft_idx + rng.choice([-1, 0, 1]), 0, len(fft_options) - 1))
+            fft_idx = (
+                fft_options.index(current_fft) if current_fft in fft_options else 1
+            )
+            fft_idx = int(
+                np.clip(fft_idx + rng.choice([-1, 0, 1]), 0, len(fft_options) - 1)
+            )
             current_fft = fft_options[fft_idx]
 
         if rng.random() > 0.7:
-            hop_idx = hop_options.index(current_hop) if current_hop in hop_options else 1
-            hop_idx = int(np.clip(hop_idx + rng.choice([-1, 0, 1]), 0, len(hop_options) - 1))
+            hop_idx = (
+                hop_options.index(current_hop) if current_hop in hop_options else 1
+            )
+            hop_idx = int(
+                np.clip(hop_idx + rng.choice([-1, 0, 1]), 0, len(hop_options) - 1)
+            )
             current_hop = hop_options[hop_idx]
 
         if rng.random() > 0.7:
-            current_thresh = float(np.clip(current_thresh + rng.normal(0, 0.05), 0.1, 0.6))
+            current_thresh = float(
+                np.clip(current_thresh + rng.normal(0, 0.05), 0.1, 0.6)
+            )
             current_thresh = round(current_thresh, 2)
 
         params = {
@@ -586,7 +601,11 @@ class PresetManager:
         raise KeyError(f"Unknown preset: {name}")
 
     def update_learned_preset(
-        self, suite: str, config: AnalyzerConfig, f_measure: float, composite_score: float
+        self,
+        suite: str,
+        config: AnalyzerConfig,
+        f_measure: float,
+        composite_score: float,
     ) -> None:
         """Update or create learned preset.
 
@@ -626,7 +645,10 @@ class PresetManager:
         path = Path(path)
         with open(path, "w") as f:
             json.dump(
-                {name: preset.model_dump() for name, preset in self.learned_presets.items()},
+                {
+                    name: preset.model_dump()
+                    for name, preset in self.learned_presets.items()
+                },
                 f,
                 indent=2,
             )

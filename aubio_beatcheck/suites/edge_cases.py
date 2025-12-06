@@ -16,10 +16,8 @@ from aubio_beatcheck.core.ground_truth import (
 )
 from aubio_beatcheck.core.thebeat_gen import (
     DEFAULT_SAMPLE_RATE,
-    align_duration_to_samples,
     generate_click_track,
     generate_onset_signal,
-    midi_to_frequency,
 )
 from aubio_beatcheck.suites.standard import TestSignal
 
@@ -54,7 +52,8 @@ class EdgeCaseSuites:
 
         # Very slow tempo - 30 BPM (2 second intervals)
         audio, signal_def = generate_click_track(
-            bpm=30, duration=max(duration, 20.0)  # Need longer for slow tempo
+            bpm=30,
+            duration=max(duration, 20.0),  # Need longer for slow tempo
         )
         signals.append(
             TestSignal(
@@ -186,9 +185,7 @@ class EdgeCaseSuites:
         signals = []
 
         # Very dense onsets - 20 per second (50ms intervals) - use custom generator
-        audio, signal_def = _generate_dense_onsets(
-            interval_ms=50.0, duration=duration
-        )
+        audio, signal_def = _generate_dense_onsets(interval_ms=50.0, duration=duration)
         signal_def.test_criteria.onset_timing_tolerance_ms = 20.0  # Tighter tolerance
         signals.append(
             TestSignal(
@@ -429,7 +426,7 @@ def _generate_dense_onsets(
     sample_rate: int = DEFAULT_SAMPLE_RATE,
 ) -> tuple[np.ndarray, SignalDefinition]:
     """Generate very dense onsets with short intervals.
-    
+
     Uses a simple click generator that works with short intervals
     where thebeat's SoundSequence would fail.
     """
@@ -610,15 +607,17 @@ def _generate_polyrhythm(
         bpm=primary_bpm, duration=duration, click_freq=1000.0
     )
     audio2, _ = generate_click_track(
-        bpm=secondary_bpm, duration=duration, click_freq=500.0  # Different frequency
+        bpm=secondary_bpm,
+        duration=duration,
+        click_freq=500.0,  # Different frequency
     )
 
     # Handle different array lengths by padding shorter one
     max_len = max(len(audio1), len(audio2))
     if len(audio1) < max_len:
-        audio1 = np.pad(audio1, (0, max_len - len(audio1)), mode='constant')
+        audio1 = np.pad(audio1, (0, max_len - len(audio1)), mode="constant")
     if len(audio2) < max_len:
-        audio2 = np.pad(audio2, (0, max_len - len(audio2)), mode='constant')
+        audio2 = np.pad(audio2, (0, max_len - len(audio2)), mode="constant")
 
     # Mix with primary being louder
     audio = 0.7 * audio1 + 0.3 * audio2

@@ -4,7 +4,7 @@ Provides weighted multi-metric optimization and Pareto-optimal configuration
 finding for closed-loop tuning of aubio analysis parameters.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -179,7 +179,9 @@ class MultiObjectiveEvaluator:
 
     def compare_configurations(
         self,
-        results: list[tuple[dict[str, Any], EvaluationMetrics, PerformanceStats | None]],
+        results: list[
+            tuple[dict[str, Any], EvaluationMetrics, PerformanceStats | None]
+        ],
     ) -> list[tuple[dict[str, Any], CompositeScore]]:
         """Compare multiple configurations and rank by composite score.
 
@@ -265,7 +267,8 @@ class ParetoOptimizer:
                 # Estimate from processing time if available
                 # Assume processing_time_ms correlates with frame latency
                 latency_score = 1.0 / (
-                    1.0 + result.processing_time_ms * 1000 / self.LATENCY_NORMALIZATION_US
+                    1.0
+                    + result.processing_time_ms * 1000 / self.LATENCY_NORMALIZATION_US
                 )
 
             points.append(
@@ -347,16 +350,10 @@ class ParetoOptimizer:
             "recall_range": (min(recalls), max(recalls)),
             "f_measure_range": (min(f_measures), max(f_measures)),
             "mae_range_ms": (min(mae_values), max(mae_values)),
-            "best_precision_params": pareto_front[
-                np.argmax(precisions)
-            ].params,
+            "best_precision_params": pareto_front[np.argmax(precisions)].params,
             "best_recall_params": pareto_front[np.argmax(recalls)].params,
-            "best_f_measure_params": pareto_front[
-                np.argmax(f_measures)
-            ].params,
-            "best_timing_params": pareto_front[
-                np.argmin(mae_values)
-            ].params,
+            "best_f_measure_params": pareto_front[np.argmax(f_measures)].params,
+            "best_timing_params": pareto_front[np.argmin(mae_values)].params,
         }
 
 

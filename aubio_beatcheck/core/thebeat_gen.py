@@ -36,11 +36,11 @@ def round_to_sample_boundary(seq: Sequence, sample_rate: int) -> None:
     """
     # Sample duration in ms = 1000 / sample_rate
     # For 44100 Hz, this is ~0.0227 ms per sample
-    sample_duration_ms = 1000.0 / sample_rate
+    1000.0 / sample_rate
 
     # Get current onsets and round to nearest sample boundary
     current_onsets = seq.onsets.copy()
-    
+
     # Convert to samples, round to integer, convert back to ms
     samples = current_onsets * sample_rate / 1000.0
     aligned_samples = np.round(samples)

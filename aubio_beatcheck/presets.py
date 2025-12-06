@@ -73,7 +73,9 @@ def get_preset(name: str, prefer_learned: bool = True) -> AnalyzerConfig:
         return _LEARNED_PRESETS[name]
 
     available_static = ", ".join(PRESETS.keys())
-    available_learned = ", ".join(_LEARNED_PRESETS.keys()) if _LEARNED_PRESETS else "none"
+    available_learned = (
+        ", ".join(_LEARNED_PRESETS.keys()) if _LEARNED_PRESETS else "none"
+    )
     raise KeyError(
         f"Unknown preset '{name}'. Static: {available_static}. Learned: {available_learned}"
     )
@@ -229,4 +231,3 @@ def get_preset_for_signal_type(
 
     preset_name = preset_map.get(optimize_for, "real_time")
     return PRESETS[preset_name]
-

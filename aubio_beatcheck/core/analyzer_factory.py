@@ -5,11 +5,10 @@ signal characteristics. Automatically selects optimal methods and
 parameters for different types of audio content.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
-from scipy import signal as scipy_signal
 
 from aubio_beatcheck.core.analyzers import (
     AnalyzerConfig,
@@ -152,7 +151,9 @@ class SignalClassifier:
             return float(geometric_mean / arithmetic_mean)
         return 0.0
 
-    def _compute_spectral_rolloff(self, audio: np.ndarray, percentile: float = 0.85) -> float:
+    def _compute_spectral_rolloff(
+        self, audio: np.ndarray, percentile: float = 0.85
+    ) -> float:
         """Compute spectral rolloff frequency."""
         frame = audio[: self.frame_size]
         if len(frame) < self.frame_size:
@@ -594,7 +595,16 @@ class AnalyzerSelector:
     @classmethod
     def list_onset_methods(cls) -> list[str]:
         """List all available onset detection methods."""
-        return ["energy", "hfc", "complex", "phase", "specdiff", "kl", "mkl", "specflux"]
+        return [
+            "energy",
+            "hfc",
+            "complex",
+            "phase",
+            "specdiff",
+            "kl",
+            "mkl",
+            "specflux",
+        ]
 
     @classmethod
     def list_pitch_methods(cls) -> list[str]:

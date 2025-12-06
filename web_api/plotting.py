@@ -108,17 +108,17 @@ def generate_pitch_analysis_plot(
     ax_wave.set_xlim(0, duration)
 
     # --- Bottom subplot: Piano Roll ---
-    
+
     # Collect all MIDI notes for y-axis range
     all_midi_notes = []
-    
+
     # Plot ground truth as horizontal bars
     for gt in ground_truth_pitches:
         start = gt.get("start_time", 0)
         end = gt.get("end_time", start + 0.1)
         midi = gt.get("midi_note", 60)
         all_midi_notes.append(midi)
-        
+
         # Draw a horizontal bar for the expected pitch
         ax_pitch.barh(
             y=midi,
@@ -145,14 +145,14 @@ def generate_pitch_analysis_plot(
 
         # Determine accuracy: check if each detection is within tolerance of ground truth
         colors = []
-        for t, note in zip(det_times, det_notes):
+        for t, note in zip(det_times, det_notes, strict=False):
             # Find ground truth pitch at this time
             expected_note = None
             for gt in ground_truth_pitches:
                 if gt["start_time"] <= t < gt["end_time"]:
                     expected_note = gt["midi_note"]
                     break
-            
+
             if expected_note is not None:
                 error = abs(note - expected_note)
                 if error <= tolerance_midi:
@@ -164,8 +164,8 @@ def generate_pitch_analysis_plot(
 
         # Size points by confidence
         sizes = [max(10, min(50, c * 50)) for c in det_conf]
-        
-        scatter = ax_pitch.scatter(
+
+        ax_pitch.scatter(
             det_times,
             det_notes,
             c=colors,
@@ -185,11 +185,11 @@ def generate_pitch_analysis_plot(
 
     ax_pitch.set_ylim(min_note, max_note)
     ax_pitch.set_xlim(0, duration)
-    
+
     # Add MIDI note labels with note names
     note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     yticks = list(range(min_note, max_note + 1))
-    
+
     # Only show labels for every note if range is small, else show fewer
     if max_note - min_note <= 24:
         # Show C notes with octave numbers
@@ -214,17 +214,43 @@ def generate_pitch_analysis_plot(
     ax_pitch.grid(True, alpha=0.3, axis="both")
 
     # Add legend with custom handles
-    from matplotlib.patches import Patch
     from matplotlib.lines import Line2D
-    
+    from matplotlib.patches import Patch
+
     legend_elements = [
-        Patch(facecolor="green", alpha=0.4, edgecolor="darkgreen", label="Ground Truth"),
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="limegreen",
-               markersize=8, markeredgecolor="black", label="Accurate Detection"),
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="red",
-               markersize=8, markeredgecolor="black", label="Inaccurate Detection"),
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="orange",
-               markersize=8, markeredgecolor="black", label="No Ground Truth"),
+        Patch(
+            facecolor="green", alpha=0.4, edgecolor="darkgreen", label="Ground Truth"
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor="limegreen",
+            markersize=8,
+            markeredgecolor="black",
+            label="Accurate Detection",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor="red",
+            markersize=8,
+            markeredgecolor="black",
+            label="Inaccurate Detection",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor="orange",
+            markersize=8,
+            markeredgecolor="black",
+            label="No Ground Truth",
+        ),
     ]
     ax_pitch.legend(handles=legend_elements, loc="upper right", fontsize=8)
 

@@ -159,7 +159,7 @@ class AnalysisController(Controller):
     path = "/api"
 
     @get("/suites")
-    async def list_suites(self) -> List[SuiteInfo]:
+    async def list_suites(self) -> list[SuiteInfo]:
         """List available test suites."""
         return [
             SuiteInfo(
@@ -191,7 +191,7 @@ class AnalysisController(Controller):
     @post("/analyze/{suite_id:str}")
     async def run_analysis(
         self, suite_id: str, data: AnalysisRequest
-    ) -> Response[Dict[str, str]]:
+    ) -> Response[dict[str, str]]:
         """Start analysis for a specific suite."""
         if suite_id not in ["tempo", "onset", "pitch", "rhythmic", "complex", "all"]:
             raise NotFoundException(detail="Suite not found")
@@ -203,7 +203,7 @@ class AnalysisController(Controller):
         )
 
     @get("/results/{suite_id:str}")
-    async def get_results(self, suite_id: str) -> List[AnalysisResult]:
+    async def get_results(self, suite_id: str) -> list[AnalysisResult]:
         """Get results for a suite."""
         return results_store.get(suite_id, [])
 
@@ -217,7 +217,7 @@ class AnalysisController(Controller):
             if not signal:
                 raise NotFoundException(detail="Signal not found")
         except ValueError:
-            raise NotFoundException(detail="Suite not found")
+            raise NotFoundException(detail="Suite not found") from None
 
         # 2. Get the analysis result
         results = results_store.get(suite_id, [])
