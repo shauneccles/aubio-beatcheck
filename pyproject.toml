@@ -55,6 +55,9 @@ dev = [
 where = ["."]
 include = ["aubio_beatcheck*", "web_api*"]
 
+[tool.setuptools.package-data]
+aubio_beatcheck = ["*.md"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"

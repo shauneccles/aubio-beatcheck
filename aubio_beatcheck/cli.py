@@ -366,17 +366,12 @@ def main():
 
 def save_agent_instructions() -> int:
     """Save agent instructions to current directory."""
+    import importlib.resources
+
     try:
-        # Read the bundled instructions file
-        instructions_path = (
-            Path(__file__).parent.parent / "docs" / "AGENT_INSTRUCTIONS.md"
-        )
-
-        if not instructions_path.exists():
-            print(f"Error: Instructions file not found at {instructions_path}")
-            return 1
-
-        content = instructions_path.read_text(encoding="utf-8")
+        # Read from package resources
+        files = importlib.resources.files("aubio_beatcheck")
+        content = (files / "AGENT_INSTRUCTIONS.md").read_text(encoding="utf-8")
 
         # Write to current directory
         output_path = Path.cwd() / "AGENT_INSTRUCTIONS.md"

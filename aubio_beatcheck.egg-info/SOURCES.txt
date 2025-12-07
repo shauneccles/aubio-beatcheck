@@ -1,6 +1,7 @@
 LICENSE
 README.md
 pyproject.toml
+aubio_beatcheck/AGENT_INSTRUCTIONS.md
 aubio_beatcheck/__init__.py
 aubio_beatcheck/cli.py
 aubio_beatcheck/presets.py
