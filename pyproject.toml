@@ -36,6 +36,12 @@ dependencies = [
     "pydantic>=2.0.0",
 ]
 
+# Development source overrides - uses local editable aubio-ledfx when available
+# This allows testing aubio-beatcheck with a development version of aubio
+# The path "." assumes aubio-beatcheck is run from the aubio-ledfx directory
+[tool.uv.sources]
+aubio-ledfx = { path = ".", editable = true }
+
 [project.urls]
 Homepage = "https://github.com/shauneccles/aubio-beatcheck"
 Repository = "https://github.com/shauneccles/aubio-beatcheck"
